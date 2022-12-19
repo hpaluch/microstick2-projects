@@ -8,6 +8,7 @@ What it does:
 * blinking LED on board at 1 Hz using Timer but not Interrupt
   (yet) - just copied demo `microstick_demo_v2013_06_26.zip`)
   to single file...
+
 TODO:
 * Use Timer interrupt
   
@@ -24,7 +25,6 @@ It is really wise advice :-)
 
 You can find list in Release Notes *for MCC Libraries*:
 - https://ww1.microchip.com/downloads/en/DeviceDoc/release_notes_pic24_dspic_pic32mm_v1_171_1.pdf 
-
 
 Tested on:
 * MPLAB X IDE v6.05

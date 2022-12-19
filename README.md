@@ -1,6 +1,6 @@
 # Henryk's Microstick II projects
 
-Here are various Henryk's project for [Microstick II][PIC Microstick II] 
+Here are various Henryk's project for [Microstick II][Microstick II] 
 board.
 
 # List of projects
@@ -33,7 +33,7 @@ The MCC Harmony tool supports only:
 * [Official Microstick II Page][Microstick II]
 * [Henryk's Microstick Notes](https://github.com/hpaluch/hpaluch.github.io/wiki/Microstick-II-board-notes)
 
-[PIC Microstick II]: https://www.microchip.com/DevelopmentTools/ProductDetails/dm330013-2
+[Microstick II]: https://www.microchip.com/DevelopmentTools/ProductDetails/dm330013-2
 [Microstick_demo_v2013_06_26]: https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/CodeExamples/microstick_demo_v2013_06_26.zip
 [PIC24FJ64GA002]: https://www.microchip.com/en-us/product/PIC24FJ64GA002
 [PIC24FJ64GB002]: https://www.microchip.com/en-us/product/PIC24FJ64GB002
