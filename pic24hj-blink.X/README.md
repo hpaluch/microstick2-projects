@@ -1,8 +1,8 @@
 # Blinkding LED for PIC24HJ and Microstick II
 
 Here is introductory blinking LED demo for:
-* [Microstick II][PIC Microstick II]  board
-* PIC24HJ128GP502  (included with Microstick II)
+* [Microstick II][Microstick II]  board
+* [PIC24HJ128GP502][PIC24HJ128GP502]  (included with Microstick II)
 
 What it does:
 * blinking LED on board at 1 Hz using Timer but not Interrupt
@@ -39,4 +39,5 @@ Tested on:
 * [Henryk's Microstick Notes](https://github.com/hpaluch/hpaluch.github.io/wiki/Microstick-II-board-notes)
 
 [Microstick_demo_v2013_06_26]: https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/CodeExamples/microstick_demo_v2013_06_26.zip
-[PIC Microstick II]: https://www.microchip.com/DevelopmentTools/ProductDetails/dm330013-2
+[Microstick II]: https://www.microchip.com/DevelopmentTools/ProductDetails/dm330013-2
+[PIC24HJ128GP502]: https://www.microchip.com/en-us/product/PIC24HJ128GP502
