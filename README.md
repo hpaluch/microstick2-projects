@@ -15,7 +15,8 @@ My board includes these MCUs (list from [Microstick II Site][Microstick II]):
 
 * ~[PIC24FJ64GA002][PIC24FJ64GA002]~ - not included in my case
 * [PIC24FJ64GB002][PIC24FJ64GB002] this
-  one probably replaces above [PIC24FJ64GA002][PIC24FJ64GA002]~
+  one probably replaces above [PIC24FJ64GA002][PIC24FJ64GA002]
+  which is fortune, because it has USB OTG support (!),
   see dedicated [USB CDC (Virtual COM port) project](https://github.com/hpaluch/pic24fj-usb-cdc-mcc.X)
 * [PIC24HJ128GP502][PIC24HJ128GP502] - no MCC tool support
 * [dsPIC33FJ128MC802][dsPIC33FJ128MC802] - no MCC tool support
