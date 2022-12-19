@@ -5,7 +5,7 @@ board.
 
 # List of projects
 
-* [pic24fj-blink.X//](pic24fj-blink.X/) - simple LED blinking demo
+* [pic24fj-blink.X/](pic24fj-blink.X/) - simple LED blinking demo
   for [PIC24FJ64GB002][PIC24FJ64GB002]  using MCC tool, utilizes
   Timer1 Interrupt.
 * [pic24hj-blink.X/](pic24hj-blink.X/) - simple LED blinking demo
