@@ -5,13 +5,9 @@ Here is introductory blinking LED demo for:
 * [PIC24HJ128GP502][PIC24HJ128GP502]  (included with Microstick II)
 
 What it does:
-* blinking LED on board at 1 Hz using Timer but not Interrupt
-  (yet) - just copied demo `microstick_demo_v2013_06_26.zip`)
+* blinking LED on board at 1 Hz using Timer1 Interrupt,
+  mostly copied demo `microstick_demo_v2013_06_26.zip`)
   to single file...
-
-TODO:
-* Use Timer interrupt
-  
 
 What is the challenge? It is NOT supported by MCC Tool. When
 you start it you get dreaded Message:

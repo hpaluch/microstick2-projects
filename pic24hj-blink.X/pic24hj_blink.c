@@ -6,6 +6,7 @@
  *     - CPU: PIC24HJ128GP502
  *   Challenge: not supported by MCC tools
  *   Based on code from: microstick_demo_v2013_06_26.zip
+ *                 and ../pic24fj-blink.X/mcc_generated_files
  * Created on December 19, 2022, 1:53 PM
  */
 
@@ -54,6 +55,18 @@
 #define LED  	 _LATA0
 #define LED_TRIS _TRISA0
 
+// Timer1 Overflow Interrupt handler.
+// Handler name must match id defined in:
+// XC16_ROOT/docs/vector_docs/PIC24HJ128GP502.html
+// You have to use "auto_psv" if interrupt handler is reading C managed
+// DATA from PROGRAM memory (Program Space Visibility window - PSV)
+void __attribute__ ((interrupt, no_auto_psv)) _T1Interrupt(void)
+{
+    LED ^= 1; // Toggle the LED
+    // Clear Timer1 Overflow Interrupt Flag
+    IFS0bits.T1IF = 0;
+}
+
 int main(void) {
 
     // based on microstick_demo_v2013_06_26/firmware/src/main.c
@@ -71,18 +84,15 @@ int main(void) {
      * T1CONbits.TCKPS = 3 divides the input clock by 256.
      * PR1 = Fcy[Hz] / 256 / 2[Hz] = 0x7A12;
      */
-    _T1IF = 0;
-    _T1IE = 0;
     TMR1 = 0x0000;
     PR1 = 0x7A12;
     T1CONbits.TCKPS = 3;
+    _T1IF = 0; // ensure that Interrupt Flag is cleared on boot
+    _T1IE = 1; // enable Timer1 Overflow Interrupt
     T1CONbits.TON = 1; 
     
     while(1){
-        if (_T1IF == 1){
-            _T1IF = 0;
-            LED ^= 1; // Toggle the LED 
-        }         
+        // NOP
     }
     
     // never reached

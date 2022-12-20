@@ -68,7 +68,4 @@ int main(void)
     // never returns
     return 1;
 }
-/**
- End of File
-*/
 
