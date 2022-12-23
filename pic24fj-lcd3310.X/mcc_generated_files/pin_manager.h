@@ -219,11 +219,11 @@
   @Example
     <code>
     // Set RB10 high (1)
-    SS1OUT_SetHigh();
+    LCD_CS_SetHigh();
     </code>
 
 */
-#define SS1OUT_SetHigh()          (_LATB10 = 1)
+#define LCD_CS_SetHigh()          (_LATB10 = 1)
 /**
   @Summary
     Sets the GPIO pin, RB10, low using LATB10.
@@ -243,11 +243,11 @@
   @Example
     <code>
     // Set RB10 low (0)
-    SS1OUT_SetLow();
+    LCD_CS_SetLow();
     </code>
 
 */
-#define SS1OUT_SetLow()           (_LATB10 = 0)
+#define LCD_CS_SetLow()           (_LATB10 = 0)
 /**
   @Summary
     Toggles the GPIO pin, RB10, using LATB10.
@@ -267,11 +267,11 @@
   @Example
     <code>
     // Toggle RB10
-    SS1OUT_Toggle();
+    LCD_CS_Toggle();
     </code>
 
 */
-#define SS1OUT_Toggle()           (_LATB10 ^= 1)
+#define LCD_CS_Toggle()           (_LATB10 ^= 1)
 /**
   @Summary
     Reads the value of the GPIO pin, RB10.
@@ -293,11 +293,11 @@
     uint16_t portValue;
 
     // Read RB10
-    postValue = SS1OUT_GetValue();
+    postValue = LCD_CS_GetValue();
     </code>
 
 */
-#define SS1OUT_GetValue()         _RB10
+#define LCD_CS_GetValue()         _RB10
 /**
   @Summary
     Configures the GPIO pin, RB10, as an input.
@@ -317,11 +317,11 @@
   @Example
     <code>
     // Sets the RB10 as an input
-    SS1OUT_SetDigitalInput();
+    LCD_CS_SetDigitalInput();
     </code>
 
 */
-#define SS1OUT_SetDigitalInput()  (_TRISB10 = 1)
+#define LCD_CS_SetDigitalInput()  (_TRISB10 = 1)
 /**
   @Summary
     Configures the GPIO pin, RB10, as an output.
@@ -341,11 +341,11 @@
   @Example
     <code>
     // Sets the RB10 as an output
-    SS1OUT_SetDigitalOutput();
+    LCD_CS_SetDigitalOutput();
     </code>
 
 */
-#define SS1OUT_SetDigitalOutput() (_TRISB10 = 0)
+#define LCD_CS_SetDigitalOutput() (_TRISB10 = 0)
 /**
   @Summary
     Sets the GPIO pin, RB11, high using LATB11.

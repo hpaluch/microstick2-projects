@@ -11,6 +11,11 @@ board.
   - OLIMEX LCD3310 details:
     - https://www.olimex.com/Products/Modules/LCD/MOD-LCD3310/open-source-hardware
     - https://github.com/OLIMEX/UEXT-MODULES/tree/master/MOD-LCD3310
+  - SPI Traps:
+    - `/SS1EN` (Slave select enabled) - is valid only:
+      - in Slave mode
+      - or Master Frame mode
+    - so in our case we must use regular GPIO PIN for for `/CS`
 * [pic24fj-blink.X/](pic24fj-blink.X/) - simple LED blinking demo
   for [PIC24FJ64GB002][PIC24FJ64GB002]  using MCC tool, utilizes
   Timer1 Interrupt.

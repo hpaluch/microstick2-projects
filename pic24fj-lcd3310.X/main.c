@@ -13,9 +13,14 @@
     Uses Microstick II board with  PIC24FJ64GB002, switch S1 in position A,
     Jumper J5 Closed.
  
+    Clock:
+    - f_RC = 8 MHz (fixed)
+    - f_RCDIV = f_RC / 2 = 4 MHz
+    - f_CPU   = f_RCDIV / 2 = 2 MHz
+  
     Used PINs:
     - RA0/PIN2 - on-board red LED blinking at 5 Hz
-    - RA3/CLKO/PIN10 - instruction clock output - 1 MHz
+    - RA3/CLKO/PIN10 - instruction clock output - f_cy =  2 MHz
     LCD display connections:
     - PIC socket               LCD pin
     - RB7/SPI1:SCK1OUT/PIN16   SCK/PIN9  - SPI1 SCK (clock output)
@@ -88,52 +93,65 @@ void TMR1_CallBack(void)
 // see also datasheet:
 // https://github.com/OLIMEX/UEXT-MODULES/blob/master/MOD-LCD3310/Hardware/TLS8204V12.pdf
 
-#define LCD_START_LINE_ADDR	(66-8)
+#define LCD_START_LINE_ADDR	(66-2)
 
 #if LCD_START_LINE_ADDR	> 66
 #error "Invalid LCD starting line address"
 #endif 
 
-#define LCD_set_command_mode LCD_DC_SetLow
-#define LCD_set_data_mode LCD_DC_SetHigh
+
+typedef enum {
+    SEND_CMD = 0,
+    SEND_DATA,
+} t_cmd_data;
+
+void LCDSend(u8 val,t_cmd_data dc)
+{
+    LCD_CS_SetLow(); // activate /CS
+    if (dc == SEND_DATA){
+        LCD_DC_SetHigh(); // sending DATA -> D/C=1
+    } else {
+        LCD_DC_SetLow();  // sending COMMAND -> D/C=0
+    }
+    SPI1_Exchange8bit( val );
+    LCD_CS_SetHigh(); // deactivate /CS
+}
 
 void LCD_init(void)
 {
+    LCD_CS_SetHigh();
+    LCD_DC_SetLow();
     // minimum RESET pulse is 3us and RESET time is additional 3us
     LCD_RESET_SetLow(); // active low
     __delay_us(20);
     LCD_RESET_SetHigh();
     __delay_us(20);
 
-    // Arduino source: LCDSend(0x21, SEND_CMD); // LCD Extended Commands. 
-    LCD_set_command_mode();
-    // LCDSend(0xC8, SEND_CMD); // Set LCD Vop (Contrast). 0xC8
-    SPI1_Exchange8bit( 0xc8 );    
+    // These commands are copied from Arduino source
+    LCDSend(0x21, SEND_CMD); // LCD Extended Commands. 
+    // LCDSend(0xC8, SEND_CMD); 
+    LCDSend(0xc8, SEND_CMD);    // Set LCD Vop (Contrast). 0xC8
 
     // MUST be in this order (S6 bit first than S5 to S0)
-    // LCDSend(0x04 | !!(LCD_START_LINE_ADDR & (1u << 6)), SEND_CMD); // Set Temp S6 for start line
-    // LCDSend(0x40 | (LCD_START_LINE_ADDR & ((1u << 6) - 1)), SEND_CMD); // Set Temp S[5:0] for start line
-    SPI1_Exchange8bit( 0x04 | !!(LCD_START_LINE_ADDR & (1u << 6)) );    
-    SPI1_Exchange8bit(0x40 | (LCD_START_LINE_ADDR & ((1u << 6) - 1)));
-    SPI1_Exchange8bit(0x12); // LCD bias mode 1:68.
-    SPI1_Exchange8bit(0x20); // LCD Standard Commands, Horizontal addressing mode.
-    SPI1_Exchange8bit(0x08); // LCD blank
-    SPI1_Exchange8bit(0x0C); // LCD in normal mode. 
+    LCDSend( 0x04 | !!(LCD_START_LINE_ADDR & (1u << 6)), SEND_CMD);    // S6
+    LCDSend(0x40 | (LCD_START_LINE_ADDR & ((1u << 6) - 1)), SEND_CMD);  // S5,S4,S3,S2,S1,S0
+    LCDSend(0x12, SEND_CMD); // LCD bias mode 1:68.
+    LCDSend(0x20, SEND_CMD); // LCD Standard Commands, Horizontal addressing mode.
+    LCDSend(0x08, SEND_CMD); // LCD blank
+    LCDSend(0x0C, SEND_CMD); // LCD in normal mode. 
 
     // try to send sample data
     //                    D7 D6 D5 D4 D3 D2 D1 D0
     // Set X addr of RAM  1  X6 X5 X4 X3 X2 X1 X0
-    SPI1_Exchange8bit(0x80); // set X address to 0
+    LCDSend(0x80, SEND_CMD); // set X address to 0
     //                    D7 D6 D5 D4 D3 D2 D1 D0
     // Set Y addr of RAM  0  1  Y5 Y4 Y3 Y2 Y1 Y0
-    SPI1_Exchange8bit(0x40); // set Y address to 0
-    // Send some data
-    LCD_set_data_mode();
-    SPI1_Exchange8bit(0xff);
-    SPI1_Exchange8bit(0x00);
-    SPI1_Exchange8bit(0x55);
-    SPI1_Exchange8bit(0xaa);  
-    LCD_set_command_mode();
+    LCDSend(0x40, SEND_CMD); // set Y address to 0
+    // Draw some data on display
+    LCDSend(0xff, SEND_DATA); // line
+    LCDSend(0x00, SEND_DATA); // space
+    LCDSend(0x55, SEND_DATA); // grid
+    LCDSend(0xaa, SEND_DATA); // inverted grid
 }
 
 int main(void)
