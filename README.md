@@ -8,6 +8,9 @@ board.
   graphical SPI LCD Display. Status:
   - just blinks LED on RA0 (on-board)
   - MCC configured for SPI (but no code yet)
+  - OLIMEX LCD3310 details:
+    - https://www.olimex.com/Products/Modules/LCD/MOD-LCD3310/open-source-hardware
+    - https://github.com/OLIMEX/UEXT-MODULES/tree/master/MOD-LCD3310
 * [pic24fj-blink.X/](pic24fj-blink.X/) - simple LED blinking demo
   for [PIC24FJ64GB002][PIC24FJ64GB002]  using MCC tool, utilizes
   Timer1 Interrupt.
