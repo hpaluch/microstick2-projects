@@ -4,18 +4,27 @@ Here are various Henryk's project for [Microstick II][Microstick II]
 board.
 
 # List of projects
-* [pic24fj-lcd3310.X/](pic24fj-lcd3310.X/) - controlling OLIMEX LCD3310
-  graphical SPI LCD Display. Status:
-  - just blinks LED on RA0 (on-board)
-  - MCC configured for SPI (but no code yet)
-  - OLIMEX LCD3310 details:
-    - https://www.olimex.com/Products/Modules/LCD/MOD-LCD3310/open-source-hardware
-    - https://github.com/OLIMEX/UEXT-MODULES/tree/master/MOD-LCD3310
-  - SPI Traps:
-    - `/SS1EN` (Slave select enabled) - is valid only:
-      - in Slave mode
-      - or Master Frame mode
-    - so in our case we must use regular GPIO PIN for for `/CS`
+
+## Project: [PIC24FJ with LCD3310](pic24fj-lcd3310.X/))
+
+Controlling OLIMEX LCD3310 (SPI) - display from Nokia 3310 phones(???)
+
+Project folder: [pic24fj-lcd3310.X/](pic24fj-lcd3310.X/)
+Status:
+- displays `Hello, world!` on LCD
+
+Notes:
+- OLIMEX LCD3310 details:
+  - https://www.olimex.com/Products/Modules/LCD/MOD-LCD3310/open-source-hardware
+  - https://github.com/OLIMEX/UEXT-MODULES/tree/master/MOD-LCD3310
+- SPI Traps:
+  - `/SS1EN` (Slave select enabled) - is valid only when:
+    - in Slave mode
+    - or Master Frame mode
+  - so in our case we must use regular GPIO PIN for for `/CS`
+
+## Trivial projects
+
 * [pic24fj-blink.X/](pic24fj-blink.X/) - simple LED blinking demo
   for [PIC24FJ64GB002][PIC24FJ64GB002]  using MCC tool, utilizes
   Timer1 Interrupt.
