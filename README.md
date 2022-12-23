@@ -9,6 +9,8 @@ board.
 
 Controlling OLIMEX LCD3310 (SPI) - display from Nokia 3310 phones(???)
 
+![PIC24FJ with Olimex LCD 3310](https://raw.githubusercontent.com/hpaluch/microstick2-projects/br-pic24fj-olimex-lcd3310/pic24fj-lcd3310.X/assets/pic24fj-lcd3310-image.jpg)
+
 Project folder: [pic24fj-lcd3310.X/](pic24fj-lcd3310.X/)
 Status:
 - displays `Hello, world!` on LCD
@@ -22,6 +24,10 @@ Notes:
     - in Slave mode
     - or Master Frame mode
   - so in our case we must use regular GPIO PIN for for `/CS`
+
+Here is Scope + analyzer of Display initializaiton over SPI:
+
+![PIC24FJ LCD3310 SPI Init](https://raw.githubusercontent.com/hpaluch/microstick2-projects/br-pic24fj-olimex-lcd3310/pic24fj-lcd3310.X/assets/ad2-lcd3310-init.png)
 
 ## Trivial projects
 
