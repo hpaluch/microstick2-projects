@@ -4,7 +4,10 @@ Here are various Henryk's project for [Microstick II][Microstick II]
 board.
 
 # List of projects
-
+* [pic24fj-lcd3310.X/](pic24fj-lcd3310.X/) - controlling OLIMEX LCD3310
+  graphical SPI LCD Display. Status:
+  - just blinks LED on RA0 (on-board)
+  - MCC configured for SPI (but no code yet)
 * [pic24fj-blink.X/](pic24fj-blink.X/) - simple LED blinking demo
   for [PIC24FJ64GB002][PIC24FJ64GB002]  using MCC tool, utilizes
   Timer1 Interrupt.
