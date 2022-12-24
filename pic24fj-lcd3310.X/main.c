@@ -78,7 +78,7 @@
     TERMS.
 */
 
-const char *BUILD_VER = "v0.04";
+const char *BUILD_VER = "v0.09";
 
 // for __delay_us())
 #define FCY 1000000UL 
@@ -108,6 +108,10 @@ void TMR1_CallBack(void)
 #error "Invalid LCD starting line address"
 #endif 
 
+#define LCD_COLUMNS 84
+#define LCD_ROWS 48
+// one TEXT line has height 8 pixels
+#define LCD_TEXTLINES (48/8)
 
 typedef enum {
     SEND_CMD = 0,
@@ -130,12 +134,12 @@ void LCDcls(void)
 {
     u8 x,y;
     
-    for (y = 0; y < 48 / 8; y++)
+    for (y = 0; y < LCD_TEXTLINES; y++)
     {
         // must be in H1H0=00 mode!
         LCDSend(0x80, SEND_CMD);
         LCDSend(0x40 | y, SEND_CMD);
-        for (x = 0; x < 84; x++)
+        for (x = 0; x < LCD_COLUMNS; x++)
         {
             LCDSend(0x00, SEND_DATA); // empty
         }
@@ -143,9 +147,7 @@ void LCDcls(void)
 }
 
 void LCD_init(void)
-{
-    u16 i;
-    
+{  
     LCD_CS_SetHigh();
     LCD_DC_SetLow();
     // minimum RESET pulse is 3us and RESET time is additional 3us
@@ -309,6 +311,47 @@ void LCDputs(const char *str)
     }
 }
 
+// returns bytes written
+u8 BUFFERputchar(u8 c, u8 *buf, u8 buf_limit)
+{
+    u8 i;
+    u8 bmp;
+    
+    if (c<32)
+        c = '?';
+    if (c > 127)
+        c= 127;
+    for(i=0;i<5;i++){
+        if (i>=buf_limit)
+            break;
+        bmp = FontLookup[c-32][i];
+        buf[i] = bmp;
+    }
+    return i;
+}
+
+// return bytes written
+u8 BUFFERputs(const char *str,u8 *buf, u8 buflen)
+{
+    u8 n=0,total=0;
+    u8 *b = buf;
+    const char *p;
+    for(p=str; *p != '\0';p++){
+        if (buflen ==0)
+            break;
+        n = BUFFERputchar(*p,b,buflen);
+        b += n;
+        buflen -= n;
+        total += n;
+    }
+    return total;
+}
+
+const char *ROLL_TEXT = "Hello!";
+// backend RAM for "Hello!" text
+// 6 -number of character in text, 5 is width of single char
+u8 ROLL_BUFFER[6*5];
+
 int main(void)
 {
     u8 y;
@@ -319,7 +362,7 @@ int main(void)
     TMR1_Start();
     INTERRUPT_GlobalEnable();
     
-    for(y=0;y!=6;y++){
+    for(y=0;y!=LCD_TEXTLINES;y++){
         LCDSend(0x80, SEND_CMD); // set X address to 0
         LCDSend(0x40+y, SEND_CMD); // set Y address to 1
         LCDputchar(y+'0');
@@ -337,11 +380,23 @@ int main(void)
             
         }
     }
+    // render text for scrolling to PIC RAM
+    BUFFERputs(ROLL_TEXT,ROLL_BUFFER,sizeof(ROLL_BUFFER));
+    __delay_ms(1000); // wait a bit and then start rolling text in bottom line
     while (1)
     {
-        // TODO: Display control via SPI
+        u8 ofs;
+        for(ofs=0;ofs!=sizeof(ROLL_BUFFER);ofs++){
+            LCDSend(0x80, SEND_CMD); // set X address to 0
+            LCDSend(0x40+(LCD_TEXTLINES-1), SEND_CMD); // set Y address to last line
+            // copy whole line to LCD
+            for(x=0;x<LCD_COLUMNS;x++){
+                LCDSend( ROLL_BUFFER[ (x+ofs) % ((u8)sizeof(ROLL_BUFFER)) ],
+                        SEND_DATA);
+            }
+            __delay_ms(200);
+        }
     }
 
     return 1;
 }
-
