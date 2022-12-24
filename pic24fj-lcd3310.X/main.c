@@ -8,6 +8,13 @@
     See links below for OLIMEX LCD3310 details:
     - https://www.olimex.com/Products/Modules/LCD/MOD-LCD3310/open-source-hardware
     - https://github.com/OLIMEX/UEXT-MODULES/tree/master/MOD-LCD3310
+    - resolution 84x48 (84 columns, 48 lines)
+ 
+    - this program uses 5x8 font, it offers:
+      6-lines (6*8=48)
+      16-characters + 4 free pixels (16*5+4 = 84)
+
+    - internal LCD RAM is 102x68 where display can show only 84x48  
  
     Uses Microstick II board with  PIC24FJ64GB002, switch S1 in position A,
     Jumper J5 Closed.
@@ -71,6 +78,8 @@
     TERMS.
 */
 
+const char *BUILD_VER = "v0.04";
+
 // for __delay_us())
 #define FCY 1000000UL 
 #include "mcc_generated_files/mcc.h"
@@ -117,6 +126,22 @@ void LCDSend(u8 val,t_cmd_data dc)
     LCD_CS_SetHigh(); // deactivate /CS
 }
 
+void LCDcls(void)
+{
+    u8 x,y;
+    
+    for (y = 0; y < 48 / 8; y++)
+    {
+        // must be in H1H0=00 mode!
+        LCDSend(0x80, SEND_CMD);
+        LCDSend(0x40 | y, SEND_CMD);
+        for (x = 0; x < 84; x++)
+        {
+            LCDSend(0x00, SEND_DATA); // empty
+        }
+    } 
+}
+
 void LCD_init(void)
 {
     u16 i;
@@ -130,36 +155,38 @@ void LCD_init(void)
     __delay_us(20);
 
     // These commands are copied from Arduino source
-    LCDSend(0x21, SEND_CMD); // LCD Extended Commands. 
+    // Function Set:  0  0  1 MX  MY PD H1 H0
+    // 0x21 =         0  0  1  0   0  0  0  1
+    LCDSend(0x21, SEND_CMD); // LCD Extended Commands.
+    // now we are in mode H1H0=01
+    // Set EVR  1  EV6 EV5 EV4  EV3 EV2 EV1 EV0, EV=8
+    // 0xc8 =   1   1    0   0    1   0   0   0
     LCDSend(0xc8, SEND_CMD);    // Set LCD Vop (Contrast). 0xC8
 
+    // Set start line S6   0 0 0 0  0 1 0 S6
+    // 0x04 + s6bit        0 0 0 0  0 1 0 s6
     // MUST be in this order (S6 bit first than S5 to S0)
     LCDSend(0x04 | !!(LCD_START_LINE_ADDR & (1u << 6)), SEND_CMD);    // S6
+    // Set start line  0  1  S5 S4  S3 S2 S1 S0
+    // 0x40 + s5to0    0  1  s5 s4  s3  s2 s1 s0
     LCDSend(0x40 | (LCD_START_LINE_ADDR & ((1u << 6) - 1)), SEND_CMD);  // S5,S4,S3,S2,S1,S0
-    LCDSend(0x14, SEND_CMD); // LCD bias 7
+    // System bias set  0 0 0 1  0 BS2 BS1 BS0
+    // 0x14             0 0 0 1  0   1   0   0  
+    LCDSend(0x14, SEND_CMD); // LCD bias // was 0x12 or 0x13
+    // Function Set  0  0  1 MX MY PD H1 H0
+    // 0x20          0  0  1  0  0  0  0  0
     LCDSend(0x20, SEND_CMD); // LCD Standard Commands, Horizontal addressing mode.
-    LCDSend(0x08, SEND_CMD); // LCD blank
-    LCDSend(0x0C, SEND_CMD); // LCD in normal mode. 
+    // now we are in H1H0=00 mode
+    // Display Control  0 0 0 0  1 D 0 E Sets display configuration
+    // 0x08             0 0 0 0  1 0 0 0 
+    LCDSend(0x08, SEND_CMD); // LCD blank (DE=00)
+    // Display Control  0 0 0 0  1 D 0 E Sets display configuration   
+    // 0x0c             0 0 0 0  1 1 0 0
+    LCDSend(0x0C, SEND_CMD); // LCD in normal mode.(DE=10)
 
-    // try to send sample data
-    //                    D7 D6 D5 D4 D3 D2 D1 D0
-    // Set X addr of RAM  1  X6 X5 X4 X3 X2 X1 X0
-    LCDSend(0x80, SEND_CMD); // set X address to 0
-    //                    D7 D6 D5 D4 D3 D2 D1 D0
-    // Set Y addr of RAM  0  1  Y5 Y4 Y3 Y2 Y1 Y0
-    LCDSend(0x40, SEND_CMD); // set Y address to 0
-    // clean some area
-    for(i=0;i<32;i++){
-        LCDSend(0x00, SEND_DATA); // empty        
-    }
-    for(i=0;i<8;i++){
-        LCDSend( (u8)(1 << i), SEND_DATA); // angled line
-    }
-    // Draw some data on display
-    LCDSend(0xff, SEND_DATA); // line
-    LCDSend(0x00, SEND_DATA); // space
-    LCDSend(0x55, SEND_DATA); // grid
-    LCDSend(0xaa, SEND_DATA); // inverted grid
+    // try to clear screen
+    // NOTE we must be in H1H0=00 mode(!)
+    LCDcls();
 }
 
 const unsigned char FontLookup [][5] =
@@ -260,7 +287,7 @@ const unsigned char FontLookup [][5] =
     { 0x7E, 0x7E, 0x7E, 0x7E, 0x7E}, // square
 }; 
 
-void LCDSendChar(u8 c)
+void LCDputchar(u8 c)
 {
     u8 i;
     
@@ -274,25 +301,42 @@ void LCDSendChar(u8 c)
     }
 }
 
-void LCDPuts(const char *str)
+void LCDputs(const char *str)
 {
     const char *p;
     for(p=str; *p != '\0';p++){
-        LCDSendChar(*p);
+        LCDputchar(*p);
     }
 }
 
 int main(void)
 {
+    u8 y;
+    u8 x;
     // initialize the device
     SYSTEM_Initialize();
     LCD_init();
     TMR1_Start();
     INTERRUPT_GlobalEnable();
     
-    LCDSend(0x80, SEND_CMD); // set X address to 0
-    LCDSend(0x41, SEND_CMD); // set Y address to 1
-    LCDPuts("Hello, world!");
+    for(y=0;y!=6;y++){
+        LCDSend(0x80, SEND_CMD); // set X address to 0
+        LCDSend(0x40+y, SEND_CMD); // set Y address to 1
+        LCDputchar(y+'0');
+        if (y==0){
+            LCDputs(__DATE__);
+            LCDputs(BUILD_VER);
+        } else {
+            LCDputs("Hello, world!EF");
+            // 4 pixels out of 84 are left
+            for(x=0;x<4;x++)
+            {
+                // 2 angled lines converging like '>'
+                LCDSend( (u8)(1 << x) | (128 >> x), SEND_DATA);
+            }
+            
+        }
+    }
     while (1)
     {
         // TODO: Display control via SPI
