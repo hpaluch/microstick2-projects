@@ -70,6 +70,10 @@ How to produce complete generated code listing:
 - https://stackoverflow.com/questions/52059357/what-is-the-xc16-command-to-obtain-disassembly-listing-disasm-file
 Please note that official Microchip's advice (to use `-Wa,-a=listing.lst` is pretty useless, because
 all extern symbols and final code address is known at (or after) linking stage only.
+- I use modified After Build command (Project Properties -> Conf:default -> Building -> Execute this line after build):
+  ```
+  ${MP_CC_DIR}\xc16-objdump -S ${ImageDir}\${PROJECTNAME}.${IMAGE_TYPE}.elf > ${ImageDir}\${PROJECTNAME}.${IMAGE_TYPE}.lst
+  ```
 
 [Microstick II]: https://www.microchip.com/DevelopmentTools/ProductDetails/dm330013-2
 [Microstick_demo_v2013_06_26]: https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/CodeExamples/microstick_demo_v2013_06_26.zip
