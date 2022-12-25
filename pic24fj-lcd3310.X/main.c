@@ -21,12 +21,11 @@
  
     Clock:
     - f_RC = 8 MHz (fixed)
-    - f_RCDIV = f_RC / 2 = 4 MHz
-    - f_CPU   = f_RCDIV / 2 = 2 MHz
+    - f_CPU   = f_RC / 2 = 4 MHz
   
     Used PINs:
     - RA0/PIN2 - on-board red LED blinking at 5 Hz
-    - RA3/CLKO/PIN10 - instruction clock output - f_cy =  2 MHz
+    - RA3/CLKO/PIN10 - instruction clock output - f_cy =  4 MHz
     LCD display connections:
     - PIC socket               LCD pin
     - RB7/SPI1:SCK1OUT/PIN16   SCK/PIN9  - SPI1 SCK (clock output)
@@ -78,10 +77,10 @@
     TERMS.
 */
 
-const char *BUILD_VER = "v0.09";
+const char *BUILD_VER = "v0.10";
 
 // for __delay_us())
-#define FCY 1000000UL 
+#define FCY 4000000UL 
 #include "mcc_generated_files/mcc.h"
 #include <libpic30.h>  // __delay_us())
 
@@ -394,7 +393,7 @@ int main(void)
                 LCDSend( ROLL_BUFFER[ (x+ofs) % ((u8)sizeof(ROLL_BUFFER)) ],
                         SEND_DATA);
             }
-            __delay_ms(200);
+            __delay_ms(100);
         }
     }
 

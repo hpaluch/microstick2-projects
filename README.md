@@ -13,7 +13,8 @@ Controlling OLIMEX LCD3310 (SPI) - display from Nokia 3310 phones(???)
 
 Project folder: [pic24fj-lcd3310.X/](pic24fj-lcd3310.X/)
 Status:
-- displays `xHello, world!EF>` on every line of LCD
+- displays `xBUILD_DATEvBUILD_VERSION` on 1st line
+- displays `xHello, world!EF>` on every line of LCD but first and last
 - and then starts rolling text (called marquee in HTML) `Hello!` on last line.
 - NOTE: in my case that rolling textline is noticeably smeared - I don't know why (CPU collision?)...
 

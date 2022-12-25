@@ -65,7 +65,7 @@
 #pragma config IOL1WAY = ON    //IOLOCK One-Way Set Enable->Once set, the IOLOCK bit cannot be cleared
 #pragma config OSCIOFNC = OFF    //OSCO Pin Configuration->OSCO pin functions as clock output (CLKO)
 #pragma config FCKSM = CSDCMD    //Clock Switching and Fail-Safe Clock Monitor->Sw Disabled, Mon Disabled
-#pragma config FNOSC = FRCDIV    //Initial Oscillator Select->Fast RC Oscillator with Postscaler (FRCDIV)
+#pragma config FNOSC = FRC    //Initial Oscillator Select->Fast RC Oscillator (FRC)
 #pragma config PLL96MHZ = ON    //96MHz PLL Startup Select->96 MHz PLL Startup is enabled automatically on start-up
 #pragma config PLLDIV = DIV12    //USB 96 MHz PLL Prescaler Select->Oscillator input divided by 12 (48 MHz input)
 #pragma config IESO = OFF    //Internal External Switchover->IESO mode (Two-Speed Start-up) disabled
