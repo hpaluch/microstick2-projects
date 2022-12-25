@@ -66,6 +66,11 @@ The MCC Harmony tool supports only:
 * [Official Microstick II Page][Microstick II]
 * [Henryk's Microstick Notes](https://github.com/hpaluch/hpaluch.github.io/wiki/Microstick-II-board-notes)
 
+How to produce complete generated code listing:
+- https://stackoverflow.com/questions/52059357/what-is-the-xc16-command-to-obtain-disassembly-listing-disasm-file
+Please note that official Microchip's advice (to use `-Wa,-a=listing.lst` is pretty useless, because
+all extern symbols and final code address is known at (or after) linking stage only.
+
 [Microstick II]: https://www.microchip.com/DevelopmentTools/ProductDetails/dm330013-2
 [Microstick_demo_v2013_06_26]: https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/CodeExamples/microstick_demo_v2013_06_26.zip
 [PIC24FJ64GA002]: https://www.microchip.com/en-us/product/PIC24FJ64GA002

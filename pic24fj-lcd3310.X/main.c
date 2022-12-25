@@ -166,7 +166,7 @@ void LCD_init(void)
 
     // Set start line S6   0 0 0 0  0 1 0 S6
     // 0x04 + s6bit        0 0 0 0  0 1 0 s6
-    // MUST be in this order (S6 bit first than S5 to S0)
+    // MUST be in this order (S6 bit first then S5 to S0)
     LCDSend(0x04 | !!(LCD_START_LINE_ADDR & (1u << 6)), SEND_CMD);    // S6
     // Set start line  0  1  S5 S4  S3 S2 S1 S0
     // 0x40 + s5to0    0  1  s5 s4  s3  s2 s1 s0
