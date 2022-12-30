@@ -12,6 +12,19 @@
     - RA2/PIN9 - Display mux 2nd Digit
     - RA3/PIN10 - Display mux 3rd Digit 
     - RA4/PIN12 - Display mux 4th Digit
+    - RB4/PIN11 - seg A, PIN11
+    - RB5/PIN14 - seg F, PIN10
+    - RB7/PIN16 - seg B, PIN7
+    - RB8, RB9 - reserved for I2C
+    - RB10/PIN21 - seg E, PIN1
+    - RB11/PIN22 - seg D, PIN2
+    - RB13/PIN24 - seg DP, PIN3
+    - RB14/PIN25 - seg C, PIN4
+    - RB15/PIN26 - seg G, PIN5
+   Reserved pins:
+    - PGED1/PIN4 - Debugger data
+    - PGEC1/PIN5 - Debugger clock
+    - /MCLR/PIN1 - ICSP debugger and programmer 
   @Description
     This source file provides main entry point for system initialization and application code development.
     Generation Information :
@@ -44,15 +57,57 @@
     TERMS.
 */
 
-/**
-  Section: Included Files
-*/
+// for __delay_xx())
+#define FCY 4000000UL 
+#include "mcc_generated_files/mcc.h"
+#include <libpic30.h>  // __delay_xs())
+
 #include "mcc_generated_files/mcc.h"
 
 #include<stdint.h>
 // compact type aliases from Linux kernel
 typedef uint8_t u8;
 typedef uint16_t u16;
+
+// 4-bit code to 7-seg display
+//     A
+//   +---+
+//  F| G |B
+//   +---+
+//  E|   |C
+//   +---+  +
+//     D    DP
+// encoded bits:
+//               7 6 5 4 3 2 1  0
+// bit 7 to 0 -> A B C D E F G  DP
+#define SEG_A  ( 1 << 7)
+#define SEG_B  ( 1 << 6)
+#define SEG_C  ( 1 << 5)
+#define SEG_D  ( 1 << 4)
+#define SEG_E  ( 1 << 3)
+#define SEG_F  ( 1 << 2)
+#define SEG_G  ( 1 << 1)
+#define SEG_DP ( 1 << 0)
+
+const u8 DISP_DEC[16] = {
+  (u8) ~ (SEG_G | SEG_DP ),                // 0 -> NOT (G|DP)
+  (u8) SEG_B | SEG_C,                      // 1 -> B|C
+  (u8) ~ (SEG_C | SEG_F | SEG_DP),         // 2 ->  NOT(C|F|DP)
+  (u8) ~ (SEG_E | SEG_F | SEG_DP),         // 3 -> NOT(E|F|DP)
+  (u8) SEG_B | SEG_C | SEG_F | SEG_G,      // 4 -> F|G|B|C
+  (u8) ~ (SEG_B | SEG_E | SEG_DP),         // 5 -> NOT(B|E|DP)
+  (u8) ~ (SEG_B | SEG_DP),                 // 6 -> NOT(B|DP)
+  (u8) SEG_A | SEG_B | SEG_C,              // 7 -> A|B|C
+  (u8) ~ SEG_DP,                           // 8 -> NOT(DP)
+  (u8) ~ (SEG_E | SEG_DP),                 // 9 -> NOT(E|DP)
+  (u8) ~ (SEG_D | SEG_DP),                 // 10 -> 'A' -> NOT(D|DP)
+  (u8) ~ (SEG_A | SEG_B | SEG_DP),         // 11 -> 'b' -> NOT(A|B|DP)
+  (u8) ~ (SEG_B | SEG_C | SEG_G | SEG_DP), // 12 -> 'C' -> NOT(B|C|G|DP)
+  (u8) ~ (SEG_A | SEG_F | SEG_DP),         // 13 -> 'd' -> NOT(A|F|DP)
+  (u8) ~ (SEG_B | SEG_C | SEG_DP),         // 14 -> 'E' -> NOT(B|C|DP)
+  (u8) ~ (SEG_B | SEG_C | SEG_D | SEG_DP)  // 15 -> 'F' -> NOT(B|C|D|DP)
+};
+
 
 volatile u8 disp_digits[4] = { 0,0,0,0 };
 volatile u16 counter = 0;
@@ -93,12 +148,22 @@ void TMR1_CallBack(void)
             break;
     }
     digit_data = disp_digits[mux];
-    // TODO: Output A-F, DP segment data from disp_digits, 0=ON, 1=OFF
+    // Output A-F, DP segment data from disp_digits, 0=ON, 1=OFF
+    // inverted logic, Low=ON, High=OFF
+    if (digit_data & 0x80) SEG_A_SetLow(); else SEG_A_SetHigh();
+    if (digit_data & 0x40) SEG_B_SetLow(); else SEG_B_SetHigh();
+    if (digit_data & 0x20) SEG_C_SetLow(); else SEG_C_SetHigh();
+    if (digit_data & 0x10) SEG_D_SetLow(); else SEG_D_SetHigh();
+    if (digit_data & 0x08) SEG_E_SetLow(); else SEG_E_SetHigh();
+    if (digit_data & 0x04) SEG_F_SetLow(); else SEG_F_SetHigh();
+    if (digit_data & 0x02) SEG_G_SetLow(); else SEG_G_SetHigh();
+    if (digit_data & 0x01) SEG_DP_SetLow(); else SEG_DP_SetHigh();   
 }
 
 
 int main(void)
 {
+    u8 hex;
     // initialize the device
     SYSTEM_Initialize();
     INTERRUPT_GlobalEnable();
@@ -107,6 +172,12 @@ int main(void)
     while (1)
     {
         // TODO: Measure Temperature, output on LED display
+        disp_digits[0] = DISP_DEC[ (u8)((hex) & 0xf) ];
+        disp_digits[1] = DISP_DEC[ (u8)((hex+1) & 0xf) ];
+        disp_digits[2] = DISP_DEC[ (u8)((hex+2) & 0xf) ];
+        disp_digits[3] = DISP_DEC[ (u8)((hex+3) & 0xf) ];
+        __delay_ms(1000);
+        hex = (u8)((hex+1) & 0x0f);
     }
 
     return 1;
