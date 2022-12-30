@@ -5,6 +5,13 @@ Makefile text eol=lf
 *.jpg binary
 *.png binary
 
+# KiCAD files
+*.kicad_prl text eol=lf
+*.kicad_pro text eol=lf
+*.kicad_pcb text eol=lf 
+# It is weird but true...
+*.kicad_sch text eol=crlf
+
 # use Unix LF even for git files
 README.md text eol=lf
 .gitignore text eol=lf

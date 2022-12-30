@@ -5,7 +5,6 @@
 # PhotoScape
 Originals/
 *.db
-
 dist/
 build/
 debug/
@@ -17,4 +16,8 @@ Makefile-*
 # track MCC generated files so your has no need to run it...
 #mcc_generated_files/
 .generated_files/
+
+# KiCAD
+*-backups/
+\#auto_saved_files\#
 
