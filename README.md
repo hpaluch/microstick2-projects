@@ -21,6 +21,9 @@ Other parts:
   - https://www.tme.eu/Document/7638705e8f42a6d61c15822cfca87f14/bc327.pdf
 - Rezistor 4k7 (4pcs)
 
+Early schematics:
+
+![PIC24FJ 4-digit LED Temperature meter schema](https://raw.githubusercontent.com/hpaluch/microstick2-projects/master/kicad/pic24fj-temp/pic24fj-temp.svg)
 
 This project will complement my existing PIC16F630 temperature meter from:
 - https://github.com/hpaluch/temp_meter_16f630
