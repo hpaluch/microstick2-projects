@@ -2,6 +2,9 @@
 *.tmp
 *.bak
 ~*
+# PhotoScape
+Originals/
+*.db
 
 dist/
 build/

@@ -2,6 +2,9 @@
 *.mc3 text eol=lf
 Makefile text eol=lf
 
+*.jpg binary
+*.png binary
+
 # use Unix LF even for git files
 README.md text eol=lf
 .gitignore text eol=lf

@@ -5,6 +5,35 @@ board.
 
 # List of projects
 
+## Project: [PIC24FJ with LCD3310](pic24fj-lcd3310.X/))
+
+Controlling OLIMEX LCD3310 (SPI) - display from Nokia 3310 phones(???)
+
+![PIC24FJ with Olimex LCD 3310](https://raw.githubusercontent.com/hpaluch/microstick2-projects/br-pic24fj-olimex-lcd3310/pic24fj-lcd3310.X/assets/pic24fj-lcd3310-image.jpg)
+
+Project folder: [pic24fj-lcd3310.X/](pic24fj-lcd3310.X/)
+Status:
+- displays `xBUILD_DATEvBUILD_VERSION` on 1st line
+- displays `xHello, world!EF>` on every line of LCD but first and last
+- and then starts rolling text (called marquee in HTML) `Hello!` on last line.
+- NOTE: in my case that rolling textline is noticeably smeared - I don't know why (CPU collision?)...
+
+Notes:
+- OLIMEX LCD3310 details:
+  - https://www.olimex.com/Products/Modules/LCD/MOD-LCD3310/open-source-hardware
+  - https://github.com/OLIMEX/UEXT-MODULES/tree/master/MOD-LCD3310
+- SPI Traps:
+  - `/SS1EN` (Slave select enabled) - is valid only when:
+    - in Slave mode
+    - or Master Frame mode
+  - so in our case we must use regular GPIO PIN for for `/CS`
+
+Here is Scope + analyzer of Display initializaiton over SPI:
+
+![PIC24FJ LCD3310 SPI Init](https://raw.githubusercontent.com/hpaluch/microstick2-projects/br-pic24fj-olimex-lcd3310/pic24fj-lcd3310.X/assets/ad2-lcd3310-init.png)
+
+## Trivial projects
+
 * [pic24fj-blink.X/](pic24fj-blink.X/) - simple LED blinking demo
   for [PIC24FJ64GB002][PIC24FJ64GB002]  using MCC tool, utilizes
   Timer1 Interrupt.
@@ -36,6 +65,15 @@ The MCC Harmony tool supports only:
 
 * [Official Microstick II Page][Microstick II]
 * [Henryk's Microstick Notes](https://github.com/hpaluch/hpaluch.github.io/wiki/Microstick-II-board-notes)
+
+How to produce complete generated code listing:
+- https://stackoverflow.com/questions/52059357/what-is-the-xc16-command-to-obtain-disassembly-listing-disasm-file
+Please note that official Microchip's advice (to use `-Wa,-a=listing.lst` is pretty useless, because
+all extern symbols and final code address is known at (or after) linking stage only.
+- I use modified After Build command (Project Properties -> Conf:default -> Building -> Execute this line after build):
+  ```
+  ${MP_CC_DIR}\xc16-objdump -S ${ImageDir}\${PROJECTNAME}.${IMAGE_TYPE}.elf > ${ImageDir}\${PROJECTNAME}.${IMAGE_TYPE}.lst
+  ```
 
 [Microstick II]: https://www.microchip.com/DevelopmentTools/ProductDetails/dm330013-2
 [Microstick_demo_v2013_06_26]: https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/CodeExamples/microstick_demo_v2013_06_26.zip
