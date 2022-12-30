@@ -5,7 +5,21 @@ board.
 
 # List of projects
 
-## Project: [PIC24FJ with LCD3310](pic24fj-lcd3310.X/))
+## Project: [PIC24FJ temperature meter](pic24fj-temp.X/)
+
+> WORK IN PROGRESS!
+
+Temperature meter with:
+* [PIC24FJ64GB002][PIC24FJ64GB002]
+* [BQ-M512RD][BQ-M512RD] - 4 digit LED display, multiplexed
+* temperature sensor - has to select Temperature sensor - one of:
+  1. DS18B20 (1-wire requires precision 1 us timings)
+  1. CJMCU-75 (LM75B on I2C)
+
+This project will complement my existing PIC16F630 temperature meter from:
+- https://github.com/hpaluch/temp_meter_16f630
+
+## Project: [PIC24FJ with LCD3310](pic24fj-lcd3310.X/)
 
 Controlling OLIMEX LCD3310 (SPI) - display from Nokia 3310 phones(???)
 
@@ -82,3 +96,4 @@ all extern symbols and final code address is known at (or after) linking stage o
 [PIC24HJ128GP502]: https://www.microchip.com/en-us/product/PIC24HJ128GP502
 [dsPIC33FJ128MC802]: https://www.microchip.com/en-us/product/dsPIC33FJ128MC802
 [PIC32MX250F128B]: https://www.microchip.com/en-us/product/PIC32MX250F128B
+[BQ-M512RD]: https://www.americanbrightled.com/pdffiles/led-components/led-displays/BQ-M512RD.pdf
