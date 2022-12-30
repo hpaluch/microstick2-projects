@@ -8,7 +8,10 @@
 
     Used I/O pins:
     - RA0/PIN2 - on-board RED LED blinking at 1 Hz
- 
+    - RA1/PIN3 - Display mux 1st Digit
+    - RA2/PIN9 - Display mux 2nd Digit
+    - RA3/PIN10 - Display mux 3rd Digit 
+    - RA4/PIN12 - Display mux 4th Digit
   @Description
     This source file provides main entry point for system initialization and application code development.
     Generation Information :
@@ -47,22 +50,50 @@
 #include "mcc_generated_files/mcc.h"
 
 #include<stdint.h>
+// compact type aliases from Linux kernel
+typedef uint8_t u8;
 typedef uint16_t u16;
 
+volatile u8 disp_digits[4] = { 0,0,0,0 };
 volatile u16 counter = 0;
 
 // automatically overrides weak function in tmr1.c:
 // TMR1 Period is 5 ms ( 200 Hz)
-// we plan to multiplex 4 digits on LED display, so 
+// we have to multiplex 4 digits on LED display, so 
 // LED display frequency is 200 Hz / 4 = 50 Hz
 void TMR1_CallBack(void)
 {
+    u8 mux;
+    u8 digit_data;
+    
     counter++;
     // Blink LED at 1Hz - toggle must be at 2 Hz (1:100) to get freq 1 Hz
     if (counter % 100 == 0){
         RED_LED_RA0_Toggle();
     }
-    // TODO: Multiplex display
+    mux = counter & 3;
+    // Multiplex display - power on just 1 tranzistor of 4 (0=ON, 1=OFF)
+    switch(mux){
+            // remind inverted logic 0=ON, 1=OFF
+        case 0:
+            DISP_MUX2_SetHigh(); DISP_MUX3_SetHigh(); DISP_MUX4_SetHigh();
+            DISP_MUX1_SetLow(); // set 0=ON as last to avoid short overload
+            break;
+        case 1:
+            DISP_MUX1_SetHigh(); DISP_MUX3_SetHigh(); DISP_MUX4_SetHigh();
+            DISP_MUX2_SetLow(); // set 0=ON as last to avoid short overload
+            break;
+        case 2:
+            DISP_MUX1_SetHigh(); DISP_MUX2_SetHigh(); DISP_MUX4_SetHigh();
+            DISP_MUX3_SetLow(); // set 0=ON as last to avoid short overload
+            break;
+        case 3:
+            DISP_MUX1_SetHigh(); DISP_MUX2_SetHigh(); DISP_MUX3_SetHigh();
+            DISP_MUX4_SetLow(); // set 0=ON as last to avoid short overload            
+            break;
+    }
+    digit_data = disp_digits[mux];
+    // TODO: Output A-F, DP segment data from disp_digits, 0=ON, 1=OFF
 }
 
 

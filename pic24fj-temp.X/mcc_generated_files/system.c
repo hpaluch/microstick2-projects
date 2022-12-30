@@ -63,7 +63,7 @@
 #pragma config POSCMOD = NONE    //Primary Oscillator Select->Primary Oscillator disabled
 #pragma config I2C1SEL = PRI    //I2C1 Pin Select bit->Use default SCL1/SDA1 pins for I2C1 
 #pragma config IOL1WAY = ON    //IOLOCK One-Way Set Enable->Once set, the IOLOCK bit cannot be cleared
-#pragma config OSCIOFNC = OFF    //OSCO Pin Configuration->OSCO pin functions as clock output (CLKO)
+#pragma config OSCIOFNC = ON    //OSCO Pin Configuration->OSCO pin functions as port I/O (RA3)
 #pragma config FCKSM = CSDCMD    //Clock Switching and Fail-Safe Clock Monitor->Sw Disabled, Mon Disabled
 #pragma config FNOSC = FRC    //Initial Oscillator Select->Fast RC Oscillator (FRC)
 #pragma config PLL96MHZ = ON    //96MHz PLL Startup Select->96 MHz PLL Startup is enabled automatically on start-up
@@ -83,15 +83,15 @@
 #include "pin_manager.h"
 #include "clock.h"
 #include "system.h"
+#include "tmr1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
-#include "tmr1.h"
 
 void SYSTEM_Initialize(void)
 {
     PIN_MANAGER_Initialize();
-    INTERRUPT_Initialize();
     CLOCK_Initialize();
+    INTERRUPT_Initialize();
     TMR1_Initialize();
 }
 

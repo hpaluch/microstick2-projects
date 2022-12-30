@@ -11,10 +11,16 @@ board.
 
 Temperature meter with:
 * [PIC24FJ64GB002][PIC24FJ64GB002]
-* [BQ-M512RD][BQ-M512RD] - 4 digit LED display, multiplexed
+* [BQ-M512RD][BQ-M512RD] - 4 digit LED display, common anode, multiplexed
 * temperature sensor - has to select Temperature sensor - one of:
   1. DS18B20 (1-wire requires precision 1 us timings)
   1. CJMCU-75 (LM75B on I2C)
+
+Other parts:
+- BC328 PNP tranzistor (4pcs) - (Ic should be >= 100 mA)
+  - https://www.tme.eu/Document/7638705e8f42a6d61c15822cfca87f14/bc327.pdf
+- Rezistor 4k7 (4pcs)
+
 
 This project will complement my existing PIC16F630 temperature meter from:
 - https://github.com/hpaluch/temp_meter_16f630
