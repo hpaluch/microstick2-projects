@@ -12,6 +12,8 @@ Thermometer with:
 * [BQ-M512RD][BQ-M512RD] - 4 digit LED display, common anode, multiplexed
 * temperature sensor: 1-wire DS18B20
 
+![PIC24FJ Thermometer with DS18B20 - prototype](https://raw.githubusercontent.com/hpaluch/microstick2-projects/master/assets/pic24fj-temp.jpg)
+
 Other parts:
 - BC328 PNP tranzistor (4pcs) - (Ic should be >= 100 mA)
   - https://www.tme.eu/Document/7638705e8f42a6d61c15822cfca87f14/bc327.pdf
