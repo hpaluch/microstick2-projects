@@ -8,7 +8,7 @@
     and 4 digit multiplexed LED display running on PIC24FJ
 
     Used I/O pins:
-    - RA0/PIN2 - on-board RED LED blinking at 1 Hz
+    - RA0/PIN2 - on-board RED LED - ON while measure in progress
     - RA1/PIN3 - Display mux 1st Digit
     - RA2/PIN9 - Display mux 2nd Digit
     - RA3/PIN10 - Display mux 3rd Digit 
@@ -16,7 +16,7 @@
     - RB4/PIN11 - seg A, PIN11
     - RB5/PIN14 - seg F, PIN10
     - RB7/PIN16 - seg B, PIN7
-    - RB8 - Dallas DS18B20, DQ, open-drain
+    - RB8 - Dallas DS18B20, DQ, open-drain (really?)
     - RB9 - Dallas Debug (Output for Analyzer)
     - RB10/PIN21 - seg E, PIN1
     - RB11/PIN22 - seg D, PIN2
@@ -66,6 +66,7 @@
 
 #include "mcc_generated_files/mcc.h"
 
+#include<stdbool.h>
 #include<stdint.h>
 // compact type aliases from Linux kernel
 typedef uint8_t u8;
@@ -113,7 +114,8 @@ const u8 DISP_DEC[16] = {
 
 volatile u8 disp_digits[4] = { 0,0,0,0 };
 volatile u16 counter = 0;
-
+// force display blank
+volatile bool blank = false;
 // automatically overrides weak function in tmr1.c:
 // TMR1 Period is 2.5 ms ( 400 Hz)
 // we have to multiplex 4 digits on LED display, so 
@@ -124,10 +126,21 @@ void TMR1_CallBack(void)
     u8 digit_data;
     
     counter++;
-    // Blink LED at 1Hz - toggle must be at 2 Hz (1:200) to get freq 1 Hz
+    // REMOVED: Blink LED at 1Hz - toggle must be at 2 Hz (1:200) to get freq 1 Hz
     if (counter % 200 == 0){
-        RED_LED_RA0_Toggle();
+        // RED_LED_RA0_Toggle();
     }
+    
+    if (blank){
+        // turn off all 4 mux tranzistors
+        DISP_MUX2_SetHigh(); DISP_MUX3_SetHigh(); DISP_MUX4_SetHigh();
+        DISP_MUX1_SetHigh();
+        // turn of all segments (not required but better for analyzer)
+        SEG_A_SetHigh();SEG_B_SetHigh();SEG_C_SetHigh();SEG_D_SetHigh();
+        SEG_E_SetHigh();SEG_F_SetHigh();SEG_G_SetHigh();SEG_DP_SetHigh();
+        return;
+    }
+    
     mux = counter & 3;
     // Multiplex display - power on just 1 tranzistor of 4 (0=ON, 1=OFF)
     switch(mux){
@@ -162,9 +175,151 @@ void TMR1_CallBack(void)
     if (digit_data & 0x01) SEG_DP_SetLow(); else SEG_DP_SetHigh();   
 }
 
+void wait4interrupt(void)
+{
+    u16 old_counter = counter;
+    while (old_counter == counter); // NOP
+}
+
+
+// Error codes
+#define EC_NO_ERROR   0x00
+// line is busy before reset
+#define EC_RESET_BUSY 0x01
+// device did not respond with present pulse on reset
+#define EC_NOT_PRESENT 0x02
+
+typedef u8 t_ec; // my type for error codes
+
+// names and portions of code based on:
+// https://www.analog.com/en/technical-articles/1wire-communication-with-a-microchip-picmicro-microcontroller.html
+// here is how Open-Drain output is driven on PIC25FJ
+// Pull down Open-Drain output to DS18B20
+#define DALLAS_OW_LOW() { DALLAS_DQ_SetLow();DEBUG_RB9_SetLow(); }
+// Release (Pull-Up) Open-Drain to DS18B20
+#define DALLAS_OW_HIZ() { DALLAS_DQ_SetHigh();  DEBUG_RB9_SetHigh(); }
+
+// Reset Dallas DS18B20 sensor
+// return false if failed
+t_ec dallas_reset(void)
+{
+    // settle line in Hi-Z (Open-Drain released)
+    DALLAS_OW_HIZ();
+    __delay_us(20);
+    // DQ line should be free
+    if (DALLAS_DQ_GetValue()==0){
+        return EC_RESET_BUSY;
+    }
+    // trigger reset    
+    DALLAS_OW_LOW();
+    __delay_us(500);
+    // give sensor 70us to respond with presence pulse
+    DALLAS_OW_HIZ();
+    __delay_us(70);
+    // device must hold DQ line - presence pulse
+    if (DALLAS_DQ_GetValue()==1){
+        return EC_NOT_PRESENT;
+    }
+    // finish 500uS timeslot
+    __delay_us(400);
+    return EC_NO_ERROR;
+}
+
+void dallas_write_byte(u8 data)
+{
+    u8 i=0;
+    for(i=0;i<8;i++){
+        // Master write - drive DQ Low
+        DALLAS_OW_LOW();
+        // wait at least 3uS, at most 15uS
+        __delay_us(3);
+        if (data & 1){
+            // release line when sending 1 (LSB first)
+            DALLAS_OW_HIZ();
+        } else {
+            Nop();
+        }
+        // keep timeslot must be between 60 us and 120 us
+        __delay_us(60);
+        DALLAS_OW_HIZ();
+        __delay_us(2);
+        data >>= 1;
+    }
+}
+
+u8 dallas_read_byte(void)
+{
+    u8 i=0, data=0;
+    for(i=0;i<8;i++){
+        data >>= 1;
+        // Master read - drive DQ Low
+        DALLAS_OW_LOW();
+        // wait 6 us
+        __delay_us(6);
+        // release DQ line
+        DALLAS_OW_HIZ();
+        // wait 4 us for response
+        __delay_us(4);
+        if (DALLAS_DQ_GetValue()){
+            data |= 0x80;
+        } else {
+            Nop();
+        }
+        // keep timeslot - total time must be between 60us and 120us
+        __delay_us(50);
+    }
+    return data;
+}
+
+t_ec dallas_start_reset(void)
+{
+    wait4interrupt(); // ensure that 1-wire communication is not disturbed by TMR1
+    return dallas_reset();   
+}
+
+
+u16  dallas_temp = 0;
+
+t_ec dallas_get_temperature(void)
+{
+    t_ec err;
+    dallas_temp = 0;
+    err = dallas_start_reset();
+    if (err) return err;
+    dallas_write_byte(0xCC); // Send Skip ROM Command (0xCC)
+    dallas_write_byte(0x44); // Convert T
+    __delay_ms(800); // wait at least 740 ms
+
+    // to read data we have to: RESET and read temperature
+    err = dallas_start_reset();
+    if (err) return err;
+    dallas_write_byte(0xCC); // Send Skip ROM Command (0xCC)
+    dallas_write_byte(0xBE); // Read ScratchPad   
+    dallas_temp = dallas_read_byte();
+    dallas_temp |=  dallas_read_byte() >> 8;
+    return EC_NO_ERROR;
+}
+
+void fatal_error(t_ec err)
+{
+    disp_digits[0] = DISP_DEC[ 0xe ]; // capital E like "error"
+    disp_digits[1] = 0; // blank
+    // high 4-bit nibbles to hex
+    disp_digits[2] = DISP_DEC[ (u8)((err >> 4) & 0xf) ];
+    // high 4-bit nibbles to hex
+    disp_digits[3] = DISP_DEC[ (u8)(err & 0xf) ];
+    while(1)
+    {
+        // blink every 200ms (400ms period) forever
+        blank = !blank;
+        __delay_ms(200);
+    }
+    
+}
 
 int main(void)
 {
+    t_ec err=0;
     u8 hex;
     // initialize the device
     SYSTEM_Initialize();
@@ -173,18 +328,30 @@ int main(void)
 
     while (1)
     {
-        // TODO: Measure Temperature, output on LED display
+        RED_LED_RA0_SetHigh();
+        // measure temperature
+        err = dallas_get_temperature();
+        if (err){
+            fatal_error(err);
+        }
+        RED_LED_RA0_SetLow();
+        // WIP: put hex value of temperature to display
+        disp_digits[0] = DISP_DEC[ (u8)((dallas_temp >> 12) & 0xf) ];
+        disp_digits[1] = DISP_DEC[ (u8)((dallas_temp >> 8) & 0xf) ];
+        disp_digits[2] = DISP_DEC[ (u8)((dallas_temp >> 4) & 0xf) ];
+        disp_digits[3] = DISP_DEC[ (u8)(dallas_temp & 0xf) ];
+
+        
+#if 0 
         disp_digits[0] = DISP_DEC[ (u8)((hex) & 0xf) ];
         disp_digits[1] = DISP_DEC[ (u8)((hex+1) & 0xf) ];
         disp_digits[2] = DISP_DEC[ (u8)((hex+2) & 0xf) ];
         disp_digits[3] = DISP_DEC[ (u8)((hex+3) & 0xf) ];
-        __delay_ms(1000);
         hex = (u8)((hex+1) & 0x0f);
+#endif        
+        __delay_ms(1000);
+
     }
 
     return 1;
 }
-/**
- End of File
-*/
-
