@@ -4,7 +4,8 @@
     pic24fj-temp.X/main.c
 
   @Summary
-    Temperature meter with PIC24FJ and 4 digit multiplexed LED display
+    Thermometer with 1-wire sensor Dallas DS18B20
+    and 4 digit multiplexed LED display running on PIC24FJ
 
     Used I/O pins:
     - RA0/PIN2 - on-board RED LED blinking at 1 Hz
@@ -15,7 +16,8 @@
     - RB4/PIN11 - seg A, PIN11
     - RB5/PIN14 - seg F, PIN10
     - RB7/PIN16 - seg B, PIN7
-    - RB8, RB9 - reserved for I2C
+    - RB8 - Dallas DS18B20, DQ, open-drain
+    - RB9 - Dallas Debug (Output for Analyzer)
     - RB10/PIN21 - seg E, PIN1
     - RB11/PIN22 - seg D, PIN2
     - RB13/PIN24 - seg DP, PIN3
@@ -113,17 +115,17 @@ volatile u8 disp_digits[4] = { 0,0,0,0 };
 volatile u16 counter = 0;
 
 // automatically overrides weak function in tmr1.c:
-// TMR1 Period is 5 ms ( 200 Hz)
+// TMR1 Period is 2.5 ms ( 400 Hz)
 // we have to multiplex 4 digits on LED display, so 
-// LED display frequency is 200 Hz / 4 = 50 Hz
+// LED display frequency is 400 Hz / 4 = 100 Hz
 void TMR1_CallBack(void)
 {
     u8 mux;
     u8 digit_data;
     
     counter++;
-    // Blink LED at 1Hz - toggle must be at 2 Hz (1:100) to get freq 1 Hz
-    if (counter % 100 == 0){
+    // Blink LED at 1Hz - toggle must be at 2 Hz (1:200) to get freq 1 Hz
+    if (counter % 200 == 0){
         RED_LED_RA0_Toggle();
     }
     mux = counter & 3;
