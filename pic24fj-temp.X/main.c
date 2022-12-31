@@ -5,7 +5,7 @@
 
   @Summary
     Thermometer with 1-wire sensor Dallas DS18B20
-    and 4 digit multiplexed LED display running on PIC24FJ
+    and 4 digit multiplexed LED display BQ-M512RD running on PIC24FJ
 
     Used I/O pins:
     - RA0/PIN2 - on-board RED LED - ON while measure in progress
@@ -71,6 +71,7 @@
 // compact type aliases from Linux kernel
 typedef uint8_t u8;
 typedef uint16_t u16;
+typedef int16_t i16;
 
 // 4-bit code to 7-seg display
 //     A
@@ -277,9 +278,8 @@ t_ec dallas_start_reset(void)
     return dallas_reset();   
 }
 
-
+// current Temp returned in this variable by dallas_get_temperature(void)
 u16  dallas_temp = 0;
-
 t_ec dallas_get_temperature(void)
 {
     t_ec err;
@@ -295,8 +295,8 @@ t_ec dallas_get_temperature(void)
     if (err) return err;
     dallas_write_byte(0xCC); // Send Skip ROM Command (0xCC)
     dallas_write_byte(0xBE); // Read ScratchPad   
-    dallas_temp = dallas_read_byte();
-    dallas_temp |=  dallas_read_byte() >> 8;
+    dallas_temp = (u16)dallas_read_byte();
+    dallas_temp |=  (u16)dallas_read_byte() << 8;
     return EC_NO_ERROR;
 }
 
@@ -306,7 +306,7 @@ void fatal_error(t_ec err)
     disp_digits[1] = 0; // blank
     // high 4-bit nibbles to hex
     disp_digits[2] = DISP_DEC[ (u8)((err >> 4) & 0xf) ];
-    // high 4-bit nibbles to hex
+    // low 4-bit nibbles to hex
     disp_digits[3] = DISP_DEC[ (u8)(err & 0xf) ];
     while(1)
     {
@@ -319,8 +319,11 @@ void fatal_error(t_ec err)
 
 int main(void)
 {
+    u16 temp_frac=0;
     t_ec err=0;
+#if 0    
     u8 hex;
+#endif
     // initialize the device
     SYSTEM_Initialize();
     INTERRUPT_GlobalEnable();
@@ -335,20 +338,44 @@ int main(void)
             fatal_error(err);
         }
         RED_LED_RA0_SetLow();
-        // WIP: put hex value of temperature to display
+        
+        // quick and dirty temperature display
+        if ((i16)dallas_temp < 0){
+            // set minus sign ond 1st digit
+            disp_digits[0] = SEG_G;
+            // make complement
+            dallas_temp = 1U+(u16)(~ dallas_temp);
+        } else {
+            disp_digits[0] = 0; // blank (like +)
+        }
+        // fraction part of temperature
+        temp_frac = dallas_temp & 0xf;
+        temp_frac = temp_frac * 10 / 16;
+        dallas_temp >>= 4;
+        if (dallas_temp>99){
+            dallas_temp = 99;
+        }
+        disp_digits[1] = DISP_DEC[ dallas_temp/10 ];
+        disp_digits[2] = DISP_DEC[ dallas_temp%10 ] | SEG_DP;
+        disp_digits[3] = DISP_DEC[ temp_frac & 0x0f ];
+        
+#if 0        
+        // debug: put 16-bit hexadecimal temperature to display
         disp_digits[0] = DISP_DEC[ (u8)((dallas_temp >> 12) & 0xf) ];
         disp_digits[1] = DISP_DEC[ (u8)((dallas_temp >> 8) & 0xf) ];
         disp_digits[2] = DISP_DEC[ (u8)((dallas_temp >> 4) & 0xf) ];
         disp_digits[3] = DISP_DEC[ (u8)(dallas_temp & 0xf) ];
-
+#endif
         
 #if 0 
+        // test digits on display
         disp_digits[0] = DISP_DEC[ (u8)((hex) & 0xf) ];
         disp_digits[1] = DISP_DEC[ (u8)((hex+1) & 0xf) ];
         disp_digits[2] = DISP_DEC[ (u8)((hex+2) & 0xf) ];
         disp_digits[3] = DISP_DEC[ (u8)((hex+3) & 0xf) ];
         hex = (u8)((hex+1) & 0x0f);
 #endif        
+        // avoid self-heating sensor with some delay
         __delay_ms(1000);
 
     }

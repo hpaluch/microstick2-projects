@@ -20,4 +20,5 @@ Makefile-*
 # KiCAD
 *-backups/
 \#auto_saved_files\#
+*.pdf
 

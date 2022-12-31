@@ -7,24 +7,23 @@ board.
 
 ## Project: [PIC24FJ Thermometer](pic24fj-temp.X/)
 
-> WORK IN PROGRESS!
-
 Thermometer with:
 * [PIC24FJ64GB002][PIC24FJ64GB002]
 * [BQ-M512RD][BQ-M512RD] - 4 digit LED display, common anode, multiplexed
-* temperature sensor, using:
-  1. DS18B20 (1-wire requires precision 1 us timings)
+* temperature sensor: 1-wire DS18B20
 
 Other parts:
 - BC328 PNP tranzistor (4pcs) - (Ic should be >= 100 mA)
   - https://www.tme.eu/Document/7638705e8f42a6d61c15822cfca87f14/bc327.pdf
 - Rezistor 4k7 (4pcs)
 
-Early schematics:
+Schematics:
 
 ![PIC24FJ 4-digit LED Thermometer schema](https://raw.githubusercontent.com/hpaluch/microstick2-projects/master/kicad/pic24fj-temp/pic24fj-temp.svg)
 
-This project will complement my existing PIC16F630 Thermometer from:
+NOTE: On-board Red LED is on while measurement is in progress.
+
+This project complements my existing PIC16F630 Thermometer (with 2-digit display and same DS18B20 sensor) from:
 - https://github.com/hpaluch/temp_meter_16f630
 
 ## Project: [PIC24FJ with LCD3310](pic24fj-lcd3310.X/)
